@@ -463,6 +463,89 @@ app.post("/create-image", async (req, res) => {
   }
 });
 
+app.post("/api/meetings/transcribe", async (req, res) => {
+  try {
+    const { audioUrl } = req.body;
+
+    if (!audioUrl) {
+      return res.status(400).json({ error: "audioUrl manquante" });
+    }
+
+    const response = await fetch(audioUrl);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const file = new File([buffer], "meeting.webm", {
+      type: "audio/webm",
+    });
+
+    const transcription = await openai.audio.transcriptions.create({
+      file,
+      model: "gpt-4o-mini-transcribe",
+      language: "fr",
+    });
+
+    res.json({
+      transcription: transcription.text,
+    });
+
+  } catch (error) {
+    console.error("Erreur transcription:", error);
+    res.status(500).json({
+      error: "Erreur transcription"
+    });
+  }
+});
+
+app.post("/api/meetings/analyze", async (req, res) => {
+  try {
+    const { transcription } = req.body;
+
+    if (!transcription) {
+      return res.status(400).json({
+        error: "Transcription manquante"
+      });
+    }
+
+    const response = await openai.responses.create({
+      model: MODEL,
+      input: `
+Analyse cette transcription de réunion GIE VAS.
+
+Retourne uniquement un JSON valide :
+
+{
+  "summary": "",
+  "decisions": "",
+  "risks": "",
+  "next_steps": "",
+  "actions": [
+    {
+      "action": "",
+      "responsible": "",
+      "due_date": "",
+      "priority": ""
+    }
+  ]
+}
+
+Transcription :
+${transcription}
+      `
+    });
+
+    res.json({
+      result: response.output_text
+    });
+
+  } catch (error) {
+    console.error("Erreur analyse:", error);
+    res.status(500).json({
+      error: "Erreur analyse"
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`PILOT AI API active on port ${PORT}`);
 });

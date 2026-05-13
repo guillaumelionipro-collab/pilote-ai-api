@@ -1,0 +1,58 @@
+[
+  {
+    "role": "user",
+    "content": "Je travaille dans le vitrage automobile et je veux connecter Pilot AI à Centre Pilot et Runesis Performance."
+  },
+  {
+    "role": "assistant",
+    "content": "Pour connecter Pilot AI à Centre Pilot et Runesis Performance, il est important de définir les objectifs précis de cette connexion. Souhaitez-vous automatiser des processus, échanger des données, ou améliorer l'analyse des performances ? Une fois les objectifs clairs, nous pourrions envisager les étapes suivantes : évaluer les APIs disponibles pour chaque plateforme, déterminer les workflows à créer et planifier une phase de test. Quels aspects souhaitez-vous explorer en priorité ?"
+  },
+  {
+    "role": "user",
+    "content": "Fais-moi un plan stratégique pour améliorer Pilot AI sur 3 mois."
+  },
+  {
+    "role": "assistant",
+    "content": "Voici un plan stratégique sur 3 mois pour améliorer Pilot AI."
+  },
+  {
+    "role": "user",
+    "content": "par contre le fichier na pas de plan visible"
+  },
+  {
+    "role": "assistant",
+    "content": "Voici le plan stratégique sur 3 mois pour améliorer Pilot AI."
+  },
+  {
+    "role": "user",
+    "content": "nickel merci"
+  },
+  {
+    "role": "assistant",
+    "content": "Voici le plan stratégique sur 3 mois pour améliorer Pilot AI."
+  },
+  {
+    "role": "user",
+    "content": "bonjour"
+  },
+  {
+    "role": "assistant",
+    "content": "Bonjour Guillaume ! Comment puis-je vous aider aujourd'hui ?"
+  },
+  {
+    "role": "user",
+    "content": "bojour"
+  },
+  {
+    "role": "assistant",
+    "content": "Bonjour Guillaume ! Que puis-je faire pour vous aujourd'hui ?"
+  },
+  {
+    "role": "user",
+    "content": "bonjour"
+  },
+  {
+    "role": "assistant",
+    "content": "Bonjour Guillaume ! Comment puis-je vous assister aujourd'hui ?"
+  }
+]
