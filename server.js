@@ -471,11 +471,18 @@ app.post("/api/meetings/transcribe", async (req, res) => {
       return res.status(400).json({ error: "audioUrl manquante" });
     }
 
-    const response = await fetch(audioUrl);
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const audioResponse = await fetch(audioUrl);
 
-    const file = new File([buffer], "meeting.webm", {
+    if (!audioResponse.ok) {
+      return res.status(400).json({
+        error: "Impossible de récupérer le fichier audio",
+      });
+    }
+
+    const arrayBuffer = await audioResponse.arrayBuffer();
+    const audioBuffer = Buffer.from(arrayBuffer);
+
+    const file = new File([audioBuffer], "reunion-centre-pilot.webm", {
       type: "audio/webm",
     });
 
@@ -483,16 +490,25 @@ app.post("/api/meetings/transcribe", async (req, res) => {
       file,
       model: "gpt-4o-mini-transcribe",
       language: "fr",
+      prompt: `
+Contexte : réunion professionnelle du GIE Vitrage Auto Service.
+Vocabulaire métier à reconnaître et préserver :
+GIE VAS, Centre Pilot, Nico, Guillaume, MAEL, agenda MAEL, OR, ordre de réparation,
+ADAS, calibration, pare-brise, vitrage automobile, SAV, Fiche de synthèse,
+DSPC, MAIF, MACIF, ETAI, XGlass, Darva, Sidexa, facturation, pré-bilan,
+rapport centre, responsable centre, procédure, audit, formation, qualité réseau.
+La transcription doit être en français professionnel, ponctuée, lisible, avec les termes métier correctement écrits.
+      `,
     });
 
     res.json({
       transcription: transcription.text,
     });
-
   } catch (error) {
-    console.error("Erreur transcription:", error);
+    console.error("Erreur transcription premium réunion :", error);
     res.status(500).json({
-      error: "Erreur transcription"
+      error: "Erreur transcription premium réunion",
+      details: error.message,
     });
   }
 });
@@ -508,13 +524,27 @@ app.post("/api/meetings/analyze", async (req, res) => {
     }
 
     const response = await openai.responses.create({
-      model: MODEL,
-      input: `
-Analyse cette transcription de réunion GIE VAS.
+  model: MODEL,
+  input: `
+Tu es l'assistant exécutif du GIE Vitrage Auto Service.
+
+Tu dois transformer une transcription brute de réunion en compte rendu professionnel de très haut niveau.
+
+RÈGLES ABSOLUES :
+- Corriger orthographe, grammaire, ponctuation.
+- Structurer en paragraphes propres.
+- Supprimer les hésitations, répétitions, mots parasites.
+- Ne jamais inventer une information absente.
+- Garder le sens exact.
+- Employer un ton professionnel, direction réseau, clair et exploitable.
+- Utiliser le vocabulaire métier si pertinent : MAEL, OR, ADAS, SAV, Fiche de synthèse, DSPC, MAIF, Darva, facturation, centre, responsable, procédure.
+- Si une information manque, écrire "À définir".
 
 Retourne uniquement un JSON valide :
 
 {
+  "corrected_transcription": "",
+  "executive_summary": "",
   "summary": "",
   "decisions": "",
   "risks": "",
@@ -523,16 +553,16 @@ Retourne uniquement un JSON valide :
     {
       "action": "",
       "responsible": "",
-      "due_date": "",
-      "priority": ""
+      "due_date": null,
+      "priority": "Basse|Moyenne|Haute|Critique"
     }
   ]
 }
 
-Transcription :
+TRANSCRIPTION BRUTE :
 ${transcription}
-      `
-    });
+  `
+});
 
     res.json({
       result: response.output_text
