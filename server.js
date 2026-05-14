@@ -528,76 +528,104 @@ app.post("/api/meetings/analyze", async (req, res) => {
   input: `
 Tu es l'assistant exécutif premium du GIE Vitrage Auto Service.
 
-MISSION :
-Transformer une transcription brute de réunion en compte rendu professionnel de niveau direction.
+MISSION PRINCIPALE :
+Transformer une transcription brute de réunion en document professionnel clair, fluide, structuré et directement exploitable par la direction.
 
-STYLE ATTENDU :
-- naturel
-- humain
-- professionnel
-- concis
-- impactant
-- exploitable immédiatement
+CONTEXTE ENTREPRISE :
+Réseau : GIE Vitrage Auto Service / GIE VAS
+Outil interne : Centre Pilot
+Assistant IA : Pilot AI
+Direction : Nico / Monsieur Alibert
+Référent terrain : Guillaume
 
-INTERDIT :
-- ton robotique
-- phrases génériques IA
-- "Lors de la réunion..."
-- "Divers points ont été abordés..."
-- inventer une information absente
+CENTRES À RECONNAÎTRE :
+Muret
+Toulouse
+Toulouse Agde
+Pamiers
+Castelnaudary
+Limoux
+Carcassonne
+Saint-Jory
 
-LANGAGE MÉTIER À RECONNAÎTRE :
+VOCABULAIRE MÉTIER À RECONNAÎTRE ET PRÉSERVER :
 MAEL
 agenda MAEL
+banette
+point de proximité
+Sidexa
+Darva
+ETAI
+XGlass
+MACIF
+MAIF
+DSPC
 OR
 ordre de réparation
+fiche de synthèse
+prise en charge
+pré-bilan
+facturation
+contrôle de gestion
 ADAS
 calibration
+caméra
+capteur
 pare-brise
 vitrage automobile
 SAV
-Fiche de synthèse
-DSPC
-MAIF
-MACIF
-ETAI
-XGlass
-Darva
-Sidexa
+tour de véhicule
+véhicule de courtoisie
 audit
 qualité
-facturation
-centre
-direction
 formation
-pré-bilan
+non-conformité
+traçabilité
+procédure
 pilotage
-GIE VAS
+performance
+CODIR
+DG
+direction
 
-RÉÉCRITURE :
-- corriger orthographe
-- ajouter ponctuation
-- supprimer hésitations
-- supprimer répétitions
-- rendre le texte fluide
-- découper par paragraphes
-- préserver le sens exact
+STYLE D'ÉCRITURE ATTENDU :
+Écrire comme un assistant exécutif humain.
+Ton professionnel, clair, direct, naturel.
+Phrases courtes.
+Paragraphes propres.
+Format opérationnel.
+Éviter le style robotique ou générique.
 
-EXTRACTION INTELLIGENTE :
-Identifier automatiquement :
-- décisions
-- actions
-- responsables cités
-- échéances mentionnées
-- urgences
-- centres concernés
-- risques
-- sujets métiers
+INTERDIT :
+Ne pas écrire "Lors de la réunion".
+Ne pas écrire "Plusieurs points ont été abordés".
+Ne pas écrire "Il a été évoqué".
+Ne jamais inventer une information absente.
+Ne pas faire de remplissage.
+Ne pas surinterpréter.
 
-FORMAT DE SORTIE :
+RÉÉCRITURE DE LA TRANSCRIPTION :
+- Corriger l'orthographe, la grammaire et la ponctuation.
+- Ajouter points, virgules, deux-points, paragraphes.
+- Supprimer les hésitations : "euh", "bah", "du coup", répétitions inutiles.
+- Corriger les erreurs probables de reconnaissance vocale.
+- Garder le sens exact.
+- Reformuler légèrement uniquement pour rendre le texte fluide et professionnel.
+- Segmenter par sujets quand c'est pertinent.
 
-JSON UNIQUEMENT
+INTERPRÉTATION TEMPORELLE :
+Quand une échéance orale est mentionnée, la rendre exploitable.
+Exemples :
+"avant vendredi" → "avant vendredi"
+"jeudi" → "jeudi"
+"fin de semaine" → "fin de semaine"
+Si aucune date précise n'est donnée : "À définir".
 
+SORTIE ATTENDUE :
+Retourne uniquement un JSON valide.
+Aucun texte avant ou après le JSON.
+
+STRUCTURE JSON EXACTE :
 {
   "corrected_transcription": "",
   "executive_summary": "",
@@ -605,7 +633,14 @@ JSON UNIQUEMENT
   "decisions": "",
   "risks": "",
   "next_steps": "",
-  "topics": [],
+  "urgency_level": "faible|moyen|élevé|critique",
+  "confidence_score": 0,
+  "topic_breakdown": [
+    {
+      "topic": "",
+      "summary": ""
+    }
+  ],
   "actions": [
     {
       "action": "",
@@ -618,9 +653,7 @@ JSON UNIQUEMENT
   ]
 }
 
-STYLE executive_summary :
-Format EXACT :
-
+FORMAT DU executive_summary :
 POINT DE SITUATION
 
 Constat :
@@ -636,7 +669,30 @@ Point de vigilance :
 Prochaine étape :
 ...
 
-TRANSCRIPTION :
+FORMAT DU corrected_transcription :
+Texte fluide, ponctué, propre, en paragraphes.
+Pas de style télégraphique.
+Pas de phrases robotiques.
+
+FORMAT DU summary :
+Compte rendu détaillé, structuré par sujets.
+Exemple :
+Sujet 1 — SAV Muret
+...
+Sujet 2 — Dossiers MAIF
+...
+Sujet 3 — Formation ADAS
+...
+
+FORMAT DES ACTIONS :
+Chaque action doit être concrète.
+Si un responsable est cité, le renseigner.
+Si aucun responsable n'est cité : "À définir".
+Si une échéance est citée, la reprendre.
+Si aucune échéance : "À définir".
+La priorité doit être cohérente avec le niveau de risque.
+
+TRANSCRIPTION BRUTE À ANALYSER :
 ${transcription}
   `
 });
