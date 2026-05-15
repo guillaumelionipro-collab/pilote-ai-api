@@ -5,6 +5,8 @@ import OpenAI from "openai";
 import fs from "fs";
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
+import pptRoutes from "./routes/pptRoutes.js";
+import { getPilotSystemPrompt } from "./pilotBrain.js";
 
 dotenv.config();
 
@@ -14,6 +16,7 @@ const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 app.use(cors());
 app.use(express.json({ limit: "25mb" }));
+app.use("/api/ppt", pptRoutes);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -271,63 +274,91 @@ ${formatMemory()}
   }
 });
 
+app.post("/api/pilot-terrain", async (req, res) => {
+  try {
+    const { question } = req.body;
+
+    if (!question) {
+      return res.status(400).json({ error: "Question manquante" });
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+Tu es Pilot Terrain, l'assistant métier terrain de Guillaume.
+Tu aides sur le vitrage automobile, les procédures centre, l'accompagnement terrain, ADAS, MAEL, OR, photos dossier, assurance, SAV et organisation atelier.
+
+Réponds de manière :
+- claire
+- courte
+- opérationnelle
+- orientée terrain
+- avec étapes simples
+- sans blabla
+
+Quand il y a un risque qualité ou sécurité, indique-le clairement.
+          `,
+        },
+        {
+          role: "user",
+          content: question,
+        },
+      ],
+      temperature: 0.3,
+    });
+
+    const answer = completion.choices[0].message.content;
+
+    res.json({ answer });
+  } catch (error) {
+    console.error("Erreur Pilot Terrain :", error);
+    res.status(500).json({ error: "Erreur IA Pilot Terrain" });
+  }
+});
+
 app.post("/pilot", async (req, res) => {
   try {
-    const { app: appName, mode, message, data } = req.body;
+    const { app: appName, mode, message, data, history } = req.body;
 
     const completion = await openai.chat.completions.create({
       model: MODEL,
       messages: [
         {
           role: "system",
-          content: `
-Tu es Pilot AI connecté aux applications de Guillaume.
-
-Application : ${appName || "pilot-ai"}
-Mode : ${mode || "general"}
-
-Réponds uniquement en JSON valide :
-{
-  "type": "chat" | "excel" | "pdf" | "image",
-  "response": "réponse claire",
-  "data": {
-    "title": "",
-    "subtitle": "",
-    "content": "",
-    "prompt": "",
-    "rows": []
-  }
-}
-
-Si mode = metier-vitrage : réponds comme un référent technique vitrage automobile.
-Si mode = runesis : réponds comme un coach performance running/trail.
-`,
+          content: getPilotSystemPrompt(mode, formatMemory())
         },
+
+        ...(history || []),
+
         {
           role: "user",
           content: `
+Application : ${appName || "pilot-ai"}
+
 Message :
 ${message}
 
-Données application :
+Contexte :
 ${JSON.stringify(data || {}, null, 2)}
-`,
-        },
+`
+        }
       ],
+      temperature: 0.7
     });
 
     const raw = completion.choices[0].message.content;
-    const parsed = safeJson(raw);
 
     res.json({
-      reply: JSON.stringify(
-        parsed || {
-          type: "chat",
-          response: raw || "Pilot est prêt.",
-          data: {},
-        }
-      ),
+      reply: JSON.stringify({
+        type: "chat",
+        response: raw,
+        data: {}
+      })
     });
+
   } catch (error) {
     console.error("Erreur /pilot :", error.message);
 
@@ -335,8 +366,8 @@ ${JSON.stringify(data || {}, null, 2)}
       reply: JSON.stringify({
         type: "chat",
         response: "Erreur Pilot API.",
-        data: {},
-      }),
+        data: {}
+      })
     });
   }
 });
